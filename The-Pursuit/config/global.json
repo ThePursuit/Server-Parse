@@ -1,0 +1,14 @@
+{
+    "applications": {
+        "The Pursuit": {
+            "applicationId": "21DCbnaTgYiizadtK1BRnc4knpMYwNiNkrRnUvdR", 
+            "masterKey": "5R4UpiNldcHnpJ74fvV9dEu7uKJIk2zWQXQEJRQt"
+        }, 
+        "_default": {
+            "link": "The Pursuit"
+        }
+    }, 
+    "global": {
+        "parseVersion": "1.3.5"
+    }
+}
