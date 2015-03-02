@@ -36,8 +36,25 @@ Parse.Cloud.define("updateGame", function(request, response) {
 * @return {Game : game} Returns a new game
 */
 Parse.Cloud.define("createGame", function(request, response) {
-  response.success("Game created");
+
+  var Game = Parse.Object.extend("Game");
+  var game = new Game();
+
+  game.set("state", createState());
+  game.set("rules", createRules());
+
+  game.save();
+
+  response.success(game);
 });
+
+function createState() {
+    return "state";
+}
+
+function createRules() {
+    return "rules";
+}
 
 /**
 * Join a created game with given gameID
