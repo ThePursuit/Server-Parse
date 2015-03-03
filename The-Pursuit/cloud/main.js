@@ -60,7 +60,9 @@ function createState() {
 }
 
 function createRules() {
-    return "rules";
+  var Rules = Parse.Object.extend("Rules");
+  var rules  = new Rules();
+  return rules;
 }
 
 /**
