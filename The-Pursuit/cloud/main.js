@@ -53,7 +53,10 @@ Parse.Cloud.define("createGame", function(request, response) {
 });
 
 function createState() {
-    return "state";
+  var State = Parse.Object.extend("State");
+  var state  = new State();
+  
+  return state;
 }
 
 function createRules() {
