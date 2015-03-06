@@ -58,6 +58,7 @@ Parse.Cloud.define("createPlayer", function(request, response){
 * @return {Game : game} Returns a created game.
 * @return {Player : player} Returns a player for the caller to use
 */
+//Returnerar just nu en lista av Players med samma gameID
 Parse.Cloud.define("joinGame", function(request, response){
     var Player = Parse.Object.extend("Player");
     var player = new Player();
@@ -77,7 +78,6 @@ Parse.Cloud.define("joinGame", function(request, response){
     var query = new Parse.Query("Player");
     query.equalTo("gameID", request.params.gameID);
     query.find({
-        //få till returneringen
         success: function(results){
             response.success(results);
         },
