@@ -1,10 +1,3 @@
-
-
-// Modified metod from exemple
-Parse.Cloud.define("hello", function(request, response) {
-  response.success("Hello, " + request.params.name + "!");
-});
-
 /**
 * Saves the callers location and returns the state of the
 * game.
@@ -60,7 +53,6 @@ function createState() {
   return state;
 }
 
-
 /**
 * Set the rules for a given game.
 *
@@ -81,7 +73,7 @@ Parse.Cloud.define("setRules", function(request, response) {
       response.success(results);
     },
     error: function() {
-      response.error("Game dose not exists");
+      response.error("Game does not exist");
     }
   });
 });
@@ -110,8 +102,8 @@ Parse.Cloud.define("joinGame", function(request, response) {
 });
 
 /**
-* Try to catch prey, if player is to far a way a time penealty
-* is issued. Otherwise prey is catched and gameState is updated.
+* Try to catch prey, if player is to far a way, a time penalty
+* is issued. Otherwise prey is caught and gameState is updated.
 *
 * @method tryCatch
 * @param {Player: player} Player to update state with
