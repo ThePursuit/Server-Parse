@@ -60,6 +60,20 @@ function createState() {
   return state;
 }
 
+
+/**
+* Set the rules for a given game.
+*
+* @method setRules
+* @param {String : gameID} A id to identify game to join.
+* @param {Int : radius} the radius of the game area
+* @param {Int : catchRadius} the radius of the accepted catch radius
+* @param {Int : duration} the duration of the game
+* @return {Game : game} Returns the game with the new rules.
+*/
+Parse.Cloud.define("setRules", function(request, response) {
+});
+
 /**
 * Join a created game with given gameID
 *
