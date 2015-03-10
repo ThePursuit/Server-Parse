@@ -41,6 +41,7 @@ Parse.Cloud.define("createGame", function(request, response) {
   var game = new Game();
 
   game.set("state", createState());
+  game.set("gameID", makeid());
   game.save();
 
   response.success(game, prey);
@@ -58,6 +59,16 @@ function createState() {
   state.set("isPlaying", false);
   
   return state;
+}
+
+function makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i = 0; i < 6; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
 }
 
 /**
