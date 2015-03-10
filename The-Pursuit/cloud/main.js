@@ -77,12 +77,25 @@ Parse.Cloud.define("setRules", function(request, response) {
 
   query.find({
     success: function(results) {
+      results.set("rules", setRules(request.radius, request.catchRadius, request.duration));
+      response.success(results);
     },
     error: function() {
       response.error("Game dose not exists");
     }
   });
 });
+
+function setRules(radius, catchRadius, duration) {
+  var Rules = Parse.Object.extend("Rules");
+  var rules  = new Rules();
+
+  rules.set("radius", radius);
+  rules.set("catchRadius", catchRadius);
+  rules.set("duration", duration);
+
+  return rules;
+}
 
 /**
 * Join a created game with given gameID
