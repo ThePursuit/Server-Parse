@@ -56,6 +56,7 @@ function createState() {
   var player  = new Player();
   player.set("isPrey", false);
 
+  state.set("startTime", new Date());
   state.add("players", player);
   state.set("isPlaying", false);
   
