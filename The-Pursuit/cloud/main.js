@@ -72,6 +72,16 @@ function createState() {
 * @return {Game : game} Returns the game with the new rules.
 */
 Parse.Cloud.define("setRules", function(request, response) {
+  var query = new Parse.Query("Game");
+  query.equalTo("gameID", request.params.gameID);
+
+  query.find({
+    success: function(results) {
+    },
+    error: function() {
+      response.error("Game dose not exists");
+    }
+  });
 });
 
 /**
