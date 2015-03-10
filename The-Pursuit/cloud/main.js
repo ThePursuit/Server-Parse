@@ -61,6 +61,43 @@ function createState() {
   return state;
 }
 
+
+/**
+* Set the rules for a given game.
+*
+* @method setRules
+* @param {String : gameID} A id to identify game to join.
+* @param {Int : radius} the radius of the game area
+* @param {Int : catchRadius} the radius of the accepted catch radius
+* @param {Int : duration} the duration of the game
+* @return {Game : game} Returns the game with the new rules.
+*/
+Parse.Cloud.define("setRules", function(request, response) {
+  var query = new Parse.Query("Game");
+  query.equalTo("gameID", request.params.gameID);
+
+  query.find({
+    success: function(results) {
+      results.set("rules", setRules(request.radius, request.catchRadius, request.duration));
+      response.success(results);
+    },
+    error: function() {
+      response.error("Game dose not exists");
+    }
+  });
+});
+
+function setRules(radius, catchRadius, duration) {
+  var Rules = Parse.Object.extend("Rules");
+  var rules  = new Rules();
+
+  rules.set("radius", radius);
+  rules.set("catchRadius", catchRadius);
+  rules.set("duration", duration);
+
+  return rules;
+}
+
 function makeid() {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
