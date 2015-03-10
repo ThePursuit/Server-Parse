@@ -41,8 +41,6 @@ Parse.Cloud.define("createGame", function(request, response) {
   var game = new Game();
 
   game.set("state", createState());
-  game.set("rules", createRules());
-
   game.save();
 
   response.success(game, prey);
@@ -56,17 +54,10 @@ function createState() {
   var player  = new Player();
   player.set("isPrey", false);
 
-  state.set("startTime", new Date());
   state.add("players", player);
   state.set("isPlaying", false);
   
   return state;
-}
-
-function createRules() {
-  var Rules = Parse.Object.extend("Rules");
-  var rules  = new Rules();
-  return rules;
 }
 
 /**
