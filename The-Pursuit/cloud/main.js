@@ -29,6 +29,17 @@ Parse.Cloud.define("updateGame", function(request, response) {
 });
 
 /**
+* starts the game and set one player as the prey.
+*
+* @method startGame
+* @param {String : gameID} Game to start
+* @return {Game : game} Returns the game
+*/
+Parse.Cloud.define("startGame", function(request, response) {
+  response.success("startGame");
+});
+
+/**
 * Creates a new game with caller as a player.
 *
 * @method createGame
