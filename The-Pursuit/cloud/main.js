@@ -49,43 +49,83 @@ Parse.Cloud.define("createPlayer", function(request, response){
     player.save();
   //  response.success();
 });
-/**
-* Join a created game with given gameID
-*
-* @method joinGame
-* @param {String : gameID} A id to identify game to join.
-* @param {String : playerID} A id to identify the player.
-* @return {Game : game} Returns a created game.
-* @return {Player : player} Returns a player for the caller to use
-*/
-//Returnerar just nu en lista av Players med samma gameID
-Parse.Cloud.define("joinGame", function(request, response){
-    var Player = Parse.Object.extend("Player");
-    var player = new Player();
-    /*
-     Vill få in följande 5 rader kod i success eller lösa på något annat sätt.
-     Detta sätt förutsätter att spelaren aldrig skriver in fel gameID.
-     Det kommer isf skapas en ny spelare och nytt spel med det gameID
-     som angavs. Detta nya spel med spelaren returneras sen.
-     */
-    //create the player who's joining the game
-    player.set("gameID", request.params.gameID);
-    player.set("playerID", request.params.playerID);
-    player.set("isPrey", false);
-    player.set("playerColor", "black");
-    player.save();
 
-    var query = new Parse.Query("Player");
+/**
+ * Join a created game with given gameID
+ *
+ * @method joinGame
+ * @param {String : gameID} A id to identify game to join.
+ * @param {String : playerID} A id to identify the player.
+ * @return {Game : game} Returns a created game with the player in the game.
+ */
+Parse.Cloud.define("joinGame", function(request, response){
+ 
+    var query = new Parse.Query("Game");
     query.equalTo("gameID", request.params.gameID);
-    query.find({
-        success: function(results){
-            response.success(results);
+    query.first({
+        success: function(object){
+          createPlayer(request.params.playerID, object, function() {
+            alert("Added PLAYER to GAME successfully, returns GAME object");
+            response.success(object);
+          });
         },
         error: function(){
-            response.error("No game with that gameID found")
+            response.error("No game with that gameID found");
         }
     });
+
 });
+ 
+function createPlayer(playerID, object, callback) {
+
+  var Player = Parse.Object.extend("Player");
+    var player  = new Player();
+  var Coordinate = Parse.Object.extend("Coordinate");
+    var location = new Coordinate();
+
+    player.set("playerID", playerID);
+    player.set("playerColor", "black");
+    player.set("isReady", false);
+    player.set("isPrey", false);
+
+    location.set("longitude", "0");
+    location.set("latitude","0");
+    //Since javascript is asynchronous, we have to make callback functions like these...
+    location.save({
+      success: function(location){
+        alert("Add LOCATION-relation to PLAYER")
+        var relation = player.relation("location");
+        relation.add(location);
+
+        player.save({
+          success: function(player){
+            alert("Add PLAYER-relation to GAME");
+            var relation = object.relation("players");
+            relation.add(player);
+
+                object.save({
+                success: function(object){
+                  alert("Saved GAME object, callback function executed");
+                  callback();
+                },
+                error: function(object, error){
+                  alert("Failed to save GAME object");
+                }
+              });
+
+          },
+          error: function(player, error){
+            alert("Failed to add PLAYER-relation to GAME");
+          }
+        });
+
+      },
+      error: function(location, error){
+        alert("Failed to add LOCATION-relation to PLAYER")
+      }
+    })
+
+}
 
 /**
 * Try to catch prey, if player is to far a way a time penealty
