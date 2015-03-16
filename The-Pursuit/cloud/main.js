@@ -42,6 +42,9 @@ Parse.Cloud.define("startGame", function(request, response) {
 
     query.find({
     success: function(results) {
+      var moment = require('moment');
+      var relationState = results.relation("state");
+      relationState.set("startTime", moment());
 
     },
     error: function() {
