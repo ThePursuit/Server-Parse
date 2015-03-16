@@ -29,36 +29,79 @@ Parse.Cloud.define("updateGame", function(request, response) {
 });
 
 /**
-* Creates a new game with caller as a player.
-*
-* @method createGame
-* @return {Player : player} Returns a player for the caller to use
-* @return {Game : game} Returns a new game
-*/
+ * Creates a new game with caller as a player.
+ *
+ * @method createGame
+ * @param {String : playerID}
+ * @return {Game : game} Returns a new game
+ * @return {Player : player} Returns a player for the caller to use
+ */
 Parse.Cloud.define("createGame", function(request, response) {
 
-  var Game = Parse.Object.extend("Game");
-  var game = new Game();
+    var Game = Parse.Object.extend("Game");
+    var game = new Game();
+    var gameID = makeid();
 
-  var stateRelation = game.relation("state");
-  relation.add(createState());
+    game.set("gameID", gameID);
+    game.save();
 
-  game.save();
-  response.success(game, prey);
+    createState(game, function(){
+        alert("createGame: Added STATE to GAME successfully");
+    });
+    createPlayer(request.params.playerID, game, function(){
+        alert("createGame: Added PLAYER to GAME successfully");
+    });
+    response.success(game);
 });
 
-function createState() {
-  var State = Parse.Object.extend("State");
-  var state  = new State();
+function createState(game, callback) {
+    var State = Parse.Object.extend("State");
+    var state  = new State();
 
-  var Player = Parse.Object.extend("Player");
-  var player  = new Player();
-  player.set("isPrey", false);
+    state.set("startTime", null);
+    state.set("isPlaying", false);
+    state.save({
+        success: function(state){
+            alert("createState: Add STATE relation to GAME.")
+            var relation = game.relation("state");
+            relation.add(state);
+            game.save({
+                success: function(){
+                    alert("createState: Saved GAME successfully, call function executed")
+                    callback();
+                },
+                error: function(){
+                    alert("createState: Failed to save GAME.")
+                }
+            });
+        },
+        error: function(error){
+            alert("createState: State save error. " + error)
+        }
+    });
+}
 
-  state.add("players", player);
-  state.set("isPlaying", false);
-  
-  return state;
+function makeid() {
+    var text = "";
+    var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var isUniqueID = false;
+
+    do {
+        for( var i = 0; i < 4; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        var gameQuery = new Parse.Query("Game");
+        gameQuery.equalTo("gameID", text);
+        gameQuery.count({
+            success: function(result){
+                if(result == 0 || result == null)
+                    isUniqueID = true;
+            }
+        });
+    }
+    while(!isUniqueID);
+
+    return text;
 }
 
 /**
