@@ -54,39 +54,67 @@ function createState() {
 }
 
 /**
-* Set the rules for a given game.
-*
-* @method setRules
-* @param {String : gameID} A id to identify game to join.
-* @param {Int : radius} the radius of the game area
-* @param {Int : catchRadius} the radius of the accepted catch radius
-* @param {Int : duration} the duration of the game
-* @return {Game : game} Returns the game with the new rules.
-*/
+ * Set the rules for a given game.
+ *
+ * @method setRules
+ * @param {String : gameID} A id to identify game to join.
+ * @param {Int : radius} the radius of the game area
+ * @param {Int : catchRadius} the radius of the accepted catch radius
+ * @param {Int : duration} the duration of the game
+ * @param {Int : maxPlayers} maximum number of players
+ * @return {Game : game} Returns the game with the new rules.
+ */
 Parse.Cloud.define("setRules", function(request, response) {
-  var query = new Parse.Query("Game");
-  query.equalTo("gameID", request.params.gameID);
+    var gameQuery = new Parse.Query("Game");
 
-  query.find({
-    success: function(results) {
-      results.set("rules", setRules(request.radius, request.catchRadius, request.duration));
-      response.success(results);
-    },
-    error: function() {
-      response.error("Game does not exist");
-    }
-  });
+    gameQuery.equalTo("gameID", request.params.gameID);
+    gameQuery.first({
+        success: function(game) {
+            setRules(
+                game,
+                request.params.radius,
+                request.params.catchRadius,
+                request.params.duration,
+                request.params.maxPlayers,
+                function(){
+                    alert("setRules: Added RULES to GAME successfully")
+                }
+            );
+            response.success(game);
+        },
+        error: function() {
+            response.error("setRules: Game does not exist");
+        }
+    });
 });
 
-function setRules(radius, catchRadius, duration) {
-  var Rules = Parse.Object.extend("Rules");
-  var rules  = new Rules();
+function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
+    var Rules = Parse.Object.extend("Rules");
+    var rules  = new Rules();
 
-  rules.set("radius", radius);
-  rules.set("catchRadius", catchRadius);
-  rules.set("duration", duration);
-
-  return rules;
+    rules.set("radius", radius);
+    rules.set("catchRadius", catchRadius);
+    rules.set("duration", duration);
+    rules.set("maxPlayers", maxPlayers);
+    rules.save({
+        success: function(rules){
+            alert("setRules: Adding RULES relation to GAME.");
+            var relation = game.relation("rules");
+            relation.add(rules);
+            game.save({
+               success: function(){
+                   alert("setRules: Saved GAME object successfully");
+                   callback();
+               },
+               error: function(){
+                    alert("setRules: Failed to save GAME");
+               }
+            });
+        },
+        error: function(){
+            alert("setRules: Failed to save RULES");
+        }
+    });
 }
 
 /**
