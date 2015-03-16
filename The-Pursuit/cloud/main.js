@@ -40,9 +40,10 @@ Parse.Cloud.define("createGame", function(request, response) {
   var Game = Parse.Object.extend("Game");
   var game = new Game();
 
-  game.set("state", createState());
-  game.save();
+  var stateRelation = game.relation("state");
+  relation.add(createState());
 
+  game.save();
   response.success(game, prey);
 });
 
