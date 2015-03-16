@@ -47,11 +47,12 @@ Parse.Cloud.define("createGame", function(request, response) {
 
     createState(game, function(){
         alert("createGame: Added STATE to GAME successfully");
+        createPlayer(request.params.playerID, game, function(){
+            alert("createGame: Added PLAYER to GAME successfully");
+            response.success(game);
+        });
     });
-    createPlayer(request.params.playerID, game, function(){
-        alert("createGame: Added PLAYER to GAME successfully");
-    });
-    response.success(game);
+
 });
 
 function createState(game, callback) {
