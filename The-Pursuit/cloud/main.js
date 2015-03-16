@@ -39,16 +39,6 @@ Parse.Cloud.define("createGame", function(request, response) {
   response.success("Game created");
 });
 
-Parse.Cloud.define("createPlayer", function(request, response){
-    var Player = Parse.Object.extend("Player");
-    var player = new Player();
-    player.set("gameID", "123");
-    player.set("playerID", request.params.playerID);
-    player.set("playerColor", request.params.playerColor);
-    player.set("isPrey", false);
-    player.save();
-  //  response.success();
-});
 
 /**
  * Join a created game with given gameID
@@ -56,75 +46,60 @@ Parse.Cloud.define("createPlayer", function(request, response){
  * @method joinGame
  * @param {String : gameID} A id to identify game to join.
  * @param {String : playerID} A id to identify the player.
- * @return {Game : game} Returns a created game with the player in the game.
+ * @return {Game : game} Returns a created game.
+ * //@return {Player : player} Returns a player for the caller to use
  */
 Parse.Cloud.define("joinGame", function(request, response){
- 
-    var query = new Parse.Query("Game");
-    query.equalTo("gameID", request.params.gameID);
-    query.first({
-        success: function(object){
-          createPlayer(request.params.playerID, object, function() {
-            alert("Added PLAYER to GAME successfully, returns GAME object");
-            response.success(object);
-          });
+
+    var gameQuery = new Parse.Query("Game");
+    gameQuery.equalTo("gameID", request.params.gameID);
+    gameQuery.first({
+        success: function(game){
+            createPlayer(request.params.playerID, game, function(){
+                alert("joinGame: Added PLAYER to GAME successfully, return GAME object");
+                response.success(game);
+            });
         },
         error: function(){
-            response.error("No game with that gameID found");
+            response.error("joinGame: No game with that gameID found");
         }
     });
-
 });
- 
-function createPlayer(playerID, object, callback) {
 
-  var Player = Parse.Object.extend("Player");
+function createPlayer(playerID, game, callback) {
+
+    var Player = Parse.Object.extend("Player");
     var player  = new Player();
-  var Coordinate = Parse.Object.extend("Coordinate");
-    var location = new Coordinate();
+    var location = new Parse.GeoPoint(0,0);
+
+    //TODO: Check if playerID is already in use
 
     player.set("playerID", playerID);
-    player.set("playerColor", "black");
+    player.set("playerColor", null);
     player.set("isReady", false);
     player.set("isPrey", false);
+    player.set("location", location);
 
-    location.set("longitude", "0");
-    location.set("latitude","0");
-    //Since javascript is asynchronous, we have to make callback functions like these...
-    location.save({
-      success: function(location){
-        alert("Add LOCATION-relation to PLAYER")
-        var relation = player.relation("location");
-        relation.add(location);
-
-        player.save({
-          success: function(player){
-            alert("Add PLAYER-relation to GAME");
-            var relation = object.relation("players");
+    player.save({
+        success: function(player){
+            alert("createPlayer: Add PLAYER-relation to GAME");
+            var relation = game.relation("players");
             relation.add(player);
 
-                object.save({
-                success: function(object){
-                  alert("Saved GAME object, callback function executed");
-                  callback();
+            game.save({
+                success: function(){
+                    alert("createPlayer: Saved GAME object, call function executed");
+                    callback();
                 },
-                error: function(object, error){
-                  alert("Failed to save GAME object");
+                error: function(){
+                    alert("createPlayer: Failed to save GAME object")
                 }
-              });
-
-          },
-          error: function(player, error){
-            alert("Failed to add PLAYER-relation to GAME");
-          }
-        });
-
-      },
-      error: function(location, error){
-        alert("Failed to add LOCATION-relation to PLAYER")
-      }
-    })
-
+            });
+        },
+        error: function(){
+            alert("createPlayer: Failed to add PLAYER-relation to GAME");
+        }
+    });
 }
 
 /**
