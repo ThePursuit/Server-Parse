@@ -90,9 +90,10 @@ function makeid() {
     do {
         for( var i = 0; i < 4; i++ )
             text += possible.charAt(Math.floor(Math.random() * possible.length));
-
+        
         var gameQuery = new Parse.Query("Game");
         gameQuery.equalTo("gameID", text);
+        //not sure how Query.count works but hopefully this works as intended
         gameQuery.count({
             success: function(result){
                 if(result == 0 || result == null)
