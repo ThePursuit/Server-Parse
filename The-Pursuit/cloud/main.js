@@ -72,6 +72,21 @@ Parse.Cloud.define("createGame", function(request, response) {
 * @return {Game : game} Returns the game
 */
 Parse.Cloud.define("startGame", function(request, response) {
+
+  var query = new Parse.Query("Game");
+  query.equalTo("gameID", request.params.gameID);
+
+    query.find({
+    success: function(results) {
+      var moment = require('moment');
+      var relationState = results.relation("state");
+      relationState.set("startTime", moment());
+
+    },
+    error: function() {
+      response.error("Game does not exist");
+    }
+  });
 });
 
 /**
