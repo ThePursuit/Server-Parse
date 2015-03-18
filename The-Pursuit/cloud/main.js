@@ -1,3 +1,10 @@
+
+
+// Modified metod from exemple
+Parse.Cloud.define("hello", function(request, response) {
+  response.success("Hello, " + request.params.name + "!");
+});
+
 /**
 * Saves the callers location and returns the state of the
 * game.
@@ -69,6 +76,7 @@ Parse.Cloud.define("createGame", function(request, response) {
  * @return {Game : game} Returns the game with the new rules.
  */
 Parse.Cloud.define("setRules", function(request, response) {
+
     var gameQuery = new Parse.Query("Game");
 
     gameQuery.equalTo("gameID", request.params.gameID);
@@ -92,7 +100,23 @@ Parse.Cloud.define("setRules", function(request, response) {
     });
 });
 
+function createPlayer(playerID, game, callback) {
+
+    var Player = Parse.Object.extend("Player");
+    var player  = new Player();
+    var location = new Parse.GeoPoint(0,0);
+
+    //TODO: Check if playerID is already in use
+
+    player.set("playerID", playerID);
+    player.set("playerColor", null);
+    player.set("isReady", false);
+    player.set("isPrey", false);
+    player.set("location", location);
+
+    player.save({
 function createState(game, callback) {
+            alert("createPlayer: Add PLAYER-relation to GAME");
     var State = Parse.Object.extend("State");
     var state  = new State();
 
@@ -144,15 +168,29 @@ function makeid() {
 }
 
 /**
-* Join a created game with given gameID
-*
-* @method joinGame
-* @param {String : gameID} A id to identify game to join. 
-* @return {Game : game} Returns a created game.
-* @return {Player : player} Returns a player for the caller to use
-*/
-Parse.Cloud.define("joinGame", function(request, response) {
-  response.success("Game joined, id:");
+ * Join a created game with given gameID
+ *
+ * @method joinGame
+ * @param {String : gameID} A id to identify game to join.
+ * @param {String : playerID} A id to identify the player.
+ * @return {Game : game} Returns a created game.
+ * //@return {Player : player} Returns a player for the caller to use
+ */
+Parse.Cloud.define("joinGame", function(request, response){
+
+    var gameQuery = new Parse.Query("Game");
+    gameQuery.equalTo("gameID", request.params.gameID);
+    gameQuery.first({
+        success: function(game){
+            createPlayer(request.params.playerID, game, function(){
+                alert("joinGame: Added PLAYER to GAME successfully, return GAME object");
+                response.success(game);
+            });
+        },
+        error: function(){
+            response.error("joinGame: No game with that gameID found");
+        }
+    });
 });
 
 /**
