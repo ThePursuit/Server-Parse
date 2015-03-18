@@ -6,26 +6,46 @@ Parse.Cloud.define("hello", function(request, response) {
 });
 
 /**
-* Saves the callers location and returns the state of the
-* game.
-*
-* @method updateGame
-* @param {Player : player} Player to update state with
-* @return {Game : game} Returns updated GameState
-*/
+ * Saves the callers location and returns the state of the
+ * game.
+ *
+ * @method updateGame
+ * @param {Player : player} Player to update state with
+ * @return {Game : game} Returns updated GameState
+ */
 Parse.Cloud.define("updateGame", function(request, response) {
 
-  // Update game state	
-  // TODO: Not finished
-  var Hunter = Parse.Object.extend("Hunter");
-  var hunter = new Hunter();
-  hunter.set("long", request.params.long);
-  hunter.set("lat", request.params.lat);
-  hunter.save();
+    var gameQuery = new Parse.Query("Game");
 
-  // Return gameState
-  // TODO: Not done
-  response.success();
+    gameQuery.equalTo("gameID",request.params.gameID);
+    gameQuery.first({
+        success: function(game){
+            var playerQuery = new Parse.Query(game);
+            playerQuery.equalTo("players", request.params.playerID);
+            playerQuery.first({
+                success: function(player){
+                    var location = new Parse.GeoPoint(request.params.longitude, request.params.latitude);
+
+                    player.set("location", location);
+                    player.save({
+                        success: function(){
+                            alert("updateGame: Successfully saved location to player, returning updated GameState")
+                            response.success(game);
+                        },
+                        error: function(){
+                            alert("updateGame: Failed to save PLAYER")
+                        }
+                    });
+                },
+                error: function(error){
+                    response.error("updateGame: no such player. " + error);
+                }
+            });
+        },
+        error: function(error){
+            response.error("updateGame: no such game. " + error);
+        }
+    });
 });
 
 /**
