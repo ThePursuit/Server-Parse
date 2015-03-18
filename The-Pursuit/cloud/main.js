@@ -22,26 +22,28 @@ Parse.Cloud.define("updateGame", function(request, response) {
 });
 
 /**
-* Creates a new game with caller as a player.
-*
-* @method createGame
-* @return {Player : player} Returns a player for the caller to use
-* @return {Game : game} Returns a new game
-*/
+ * Creates a new game with caller as a player.
+ *
+ * @method createGame
+ * @param {String : playerID}
+ * @return {Game : game} Returns a new game
+ * @return {Player : player} Returns a player for the caller to use
+ */
 Parse.Cloud.define("createGame", function(request, response) {
 
-  var Game = Parse.Object.extend("Game");
-  var game = new Game();
+    var Game = Parse.Object.extend("Game");
+    var game = new Game();
+    var gameID = makeid();
 
-  var stateRelation = game.relation("state");
-  relation.add(createState());
+    game.set("gameID", gameID);
+    game.save();
 
   game.set("gameID", makeid());
   game.save();
   response.success(game, prey);
 });
 
-function createState() {
+    createState(game, function(){
   var State = Parse.Object.extend("State");
   var state  = new State();
 
@@ -58,7 +60,7 @@ function createState() {
 /**
  * Set the rules for a given game.
  *
- * @method setRules
+  * @method setRules
  * @param {String : gameID} A id to identify game to join.
  * @param {Int : radius} the radius of the game area
  * @param {Int : catchRadius} the radius of the accepted catch radius
@@ -90,31 +92,29 @@ Parse.Cloud.define("setRules", function(request, response) {
     });
 });
 
-function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
-    var Rules = Parse.Object.extend("Rules");
-    var rules  = new Rules();
+function createState(game, callback) {
+    var State = Parse.Object.extend("State");
+    var state  = new State();
 
-    rules.set("radius", radius);
-    rules.set("catchRadius", catchRadius);
-    rules.set("duration", duration);
-    rules.set("maxPlayers", maxPlayers);
-    rules.save({
-        success: function(rules){
-            alert("setRules: Adding RULES relation to GAME.");
-            var relation = game.relation("rules");
-            relation.add(rules);
+    state.set("startTime", null);
+    state.set("isPlaying", false);
+    state.save({
+        success: function(state){
+            alert("createState: Add STATE relation to GAME.")
+            var relation = game.relation("state");
+            relation.add(state);
             game.save({
-               success: function(){
-                   alert("setRules: Saved GAME object successfully");
-                   callback();
-               },
-               error: function(){
-                    alert("setRules: Failed to save GAME");
-               }
+                success: function(){
+                    alert("createState: Saved GAME successfully, call function executed")
+                    callback();
+                },
+                error: function(){
+                    alert("createState: Failed to save GAME.")
+                }
             });
         },
-        error: function(){
-            alert("setRules: Failed to save RULES");
+        error: function(error){
+            alert("createState: State save error. " + error)
         }
     });
 }
@@ -122,9 +122,23 @@ function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
 function makeid() {
     var text = "";
     var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var isUniqueID = false;
 
-    for( var i = 0; i < 6; i++ )
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    do {
+        for( var i = 0; i < 4; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        
+        var gameQuery = new Parse.Query("Game");
+        gameQuery.equalTo("gameID", text);
+        //not sure how Query.count works but hopefully this works as intended
+        gameQuery.count({
+            success: function(result){
+                if(result == 0 || result == null)
+                    isUniqueID = true;
+            }
+        });
+    }
+    while(!isUniqueID);
 
     return text;
 }
