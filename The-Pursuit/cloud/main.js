@@ -45,23 +45,64 @@ Parse.Cloud.define("createGame", function(request, response) {
     game.set("gameID", gameID);
     game.save();
 
-  game.set("gameID", makeid());
-  game.save();
-  response.success(game, prey);
+    createState(game, function(){
+        alert("createGame: Added STATE to GAME successfully");
+    });
+    createPlayer(request.params.playerID, game, function(){
+        alert("createGame: Added PLAYER to GAME successfully");
+    });
+    response.success(game);
 });
 
-function createState(game) {
-  var State = Parse.Object.extend("State");
-  var state  = new State();
+function createState(game, callback) {
+    var State = Parse.Object.extend("State");
+    var state  = new State();
 
-  var Player = Parse.Object.extend("Player");
-  var player  = new Player();
-  player.set("isPrey", false);
+    state.set("startTime", null);
+    state.set("isPlaying", false);
+    state.save({
+        success: function(state){
+            alert("createState: Add STATE relation to GAME.")
+            var relation = game.relation("state");
+            relation.add(state);
+            game.save({
+                success: function(){
+                    alert("createState: Saved GAME successfully, call function executed")
+                    callback();
+                },
+                error: function(){
+                    alert("createState: Failed to save GAME.")
+                }
+            });
+        },
+        error: function(error){
+            alert("createState: State save error. " + error)
+        }
+    });
+}
 
-  state.add("players", player);
-  state.set("isPlaying", false);
-  
-  return state;
+function makeid() {
+    var text = "";
+    var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var isUniqueID = false;
+
+    do {
+        for( var i = 0; i < 4; i++ )
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        var gameQuery = new Parse.Query("Game");
+        gameQuery.equalTo("gameID", text);
+        //not sure how Query.count works but hopefully this works as intended
+        gameQuery.count({
+            success: function(result){
+                if(result == 0 || result == null)
+                    isUniqueID = true;
+            }
+        });
+    }
+    while(!isUniqueID);
+
+    return text;
 }
 
 /**
@@ -100,6 +141,36 @@ function createState(game) {
     });
 });
 
+function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
+    var Rules = Parse.Object.extend("Rules");
+    var rules  = new Rules();
+
+    rules.set("radius", radius);
+    rules.set("catchRadius", catchRadius);
+    rules.set("duration", duration);
+    rules.set("maxPlayers", maxPlayers);
+    rules.save({
+        success: function(rules){
+            alert("setRules: Adding RULES relation to GAME.");
+            var relation = game.relation("rules");
+            relation.add(rules);
+            game.save({
+                success: function(){
+                    alert("setRules: Saved GAME object successfully");
+                    callback();
+                },
+                error: function(){
+                    alert("setRules: Failed to save GAME");
+                }
+            });
+        },
+        error: function(){
+            alert("setRules: Failed to save RULES");
+        }
+    });
+}
+
+
 function createPlayer(playerID, game, callback) {
 
     var Player = Parse.Object.extend("Player");
@@ -114,59 +185,26 @@ function createPlayer(playerID, game, callback) {
     player.set("isPrey", false);
     player.set("location", location);
 
-    player.save()
-}
-
-function createState(game, callback) {
+    player.save({
+        success: function(player){
             alert("createPlayer: Add PLAYER-relation to GAME");
-    var State = Parse.Object.extend("State");
-    var state  = new State();
+            var relation = game.relation("players");
+            relation.add(player);
 
-    state.set("startTime", null);
-    state.set("isPlaying", false);
-    state.save({
-        success: function(state){
-            alert("createState: Add STATE relation to GAME.")
-            var relation = game.relation("state");
-            relation.add(state);
             game.save({
                 success: function(){
-                    alert("createState: Saved GAME successfully, call function executed")
+                    alert("createPlayer: Saved GAME object, call function executed");
                     callback();
                 },
                 error: function(){
-                    alert("createState: Failed to save GAME.")
+                    alert("createPlayer: Failed to save GAME object")
                 }
             });
         },
-        error: function(error){
-            alert("createState: State save error. " + error)
+        error: function(){
+            alert("createPlayer: Failed to add PLAYER-relation to GAME");
         }
     });
-}
-
-function makeid() {
-    var text = "";
-    var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
-    var isUniqueID = false;
-
-    do {
-        for( var i = 0; i < 4; i++ )
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        
-        var gameQuery = new Parse.Query("Game");
-        gameQuery.equalTo("gameID", text);
-        //not sure how Query.count works but hopefully this works as intended
-        gameQuery.count({
-            success: function(result){
-                if(result == 0 || result == null)
-                    isUniqueID = true;
-            }
-        });
-    }
-    while(!isUniqueID);
-
-    return text;
 }
 
 /**
