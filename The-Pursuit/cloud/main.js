@@ -50,7 +50,7 @@ Parse.Cloud.define("createGame", function(request, response) {
   response.success(game, prey);
 });
 
-    createState(game, function(){
+function createState(game) {
   var State = Parse.Object.extend("State");
   var state  = new State();
 
@@ -67,7 +67,7 @@ Parse.Cloud.define("createGame", function(request, response) {
 /**
  * Set the rules for a given game.
  *
-  * @method setRules
+ * @method setRules
  * @param {String : gameID} A id to identify game to join.
  * @param {Int : radius} the radius of the game area
  * @param {Int : catchRadius} the radius of the accepted catch radius
@@ -75,7 +75,7 @@ Parse.Cloud.define("createGame", function(request, response) {
  * @param {Int : maxPlayers} maximum number of players
  * @return {Game : game} Returns the game with the new rules.
  */
-Parse.Cloud.define("setRules", function(request, response) {
+ Parse.Cloud.define("setRules", function(request, response) {
 
     var gameQuery = new Parse.Query("Game");
 
@@ -114,7 +114,9 @@ function createPlayer(playerID, game, callback) {
     player.set("isPrey", false);
     player.set("location", location);
 
-    player.save({
+    player.save()
+}
+
 function createState(game, callback) {
             alert("createPlayer: Add PLAYER-relation to GAME");
     var State = Parse.Object.extend("State");
