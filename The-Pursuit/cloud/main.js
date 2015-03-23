@@ -41,18 +41,18 @@ Parse.Cloud.define("createGame", function(request, response) {
     var Game = Parse.Object.extend("Game");
     var game = new Game();
     var gameID = makeid();
-
     game.set("gameID", gameID);
-    game.save();
+    
+    game.save({
+      success: function() {
+        createState(game, function(state) {
+          alert("createGame: Added STATE to GAME successfully");
 
-    createState(game, function(){
-        alert("createGame: Added STATE to GAME successfully");
-    });
-    createPlayer(request.params.playerID, game, function(){
-        alert("createGame: Added PLAYER to GAME successfully");
-    });
-    response.success(game);
-});
+          response.success(game);
+        });    
+      } 
+  });
+}); 
 
 function createState(game, callback) {
     var State = Parse.Object.extend("State");
@@ -61,23 +61,37 @@ function createState(game, callback) {
     state.set("startTime", null);
     state.set("isPlaying", false);
     state.save({
-        success: function(state){
-            alert("createState: Add STATE relation to GAME.")
-            var relation = game.relation("state");
-            relation.add(state);
-            game.save({
-                success: function(){
-                    alert("createState: Saved GAME successfully, call function executed")
-                    callback();
-                },
-                error: function(){
-                    alert("createState: Failed to save GAME.")
-                }
+      success: function(state){
+        alert("createState: Add STATE relation to GAME.")
+        var relation = game.relation("state");
+        relation.add(state);
+        game.save({
+          success: function(){
+            alert("createState: Saved GAME successfully, call function executed")
+
+            var player = createPlayer();
+            var relation = state.relation("players");
+
+            player.save({
+              success: function() {
+                relation.add(player);
+                state.save({
+                  success: function() {
+                    alert("createState: Player created and added to state")
+                    callback(state);    
+                  }
+                });
+              }
             });
-        },
-        error: function(error){
-            alert("createState: State save error. " + error)
-        }
+          },
+          error: function(){
+            alert("createState: Failed to save GAME.")
+          }
+        });
+      },
+      error: function(error){
+          alert("createState: State save error. " + error)
+      }
     });
 }
 
@@ -86,21 +100,22 @@ function makeid() {
     var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
     var isUniqueID = false;
 
-    do {
+    // do {
         for( var i = 0; i < 4; i++ )
             text += possible.charAt(Math.floor(Math.random() * possible.length));
 
-        var gameQuery = new Parse.Query("Game");
-        gameQuery.equalTo("gameID", text);
-        //not sure how Query.count works but hopefully this works as intended
-        gameQuery.count({
-            success: function(result){
-                if(result == 0 || result == null)
-                    isUniqueID = true;
-            }
-        });
-    }
-    while(!isUniqueID);
+    //     var gameQuery = new Parse.Query("Game");
+
+    //     gameQuery.equalTo("gameID", text);
+    //     //not sure how Query.count works but hopefully this works as intended
+    //     gameQuery.count({
+    //         success: function(result){
+    //             if(result == 0 || result == null)
+    //                 isUniqueID = true;
+    //         }
+    //     });
+    // }
+    // while(!isUniqueID);
 
     return text;
 }
@@ -171,40 +186,20 @@ function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
 }
 
 
-function createPlayer(playerID, game, callback) {
+function createPlayer() {
 
     var Player = Parse.Object.extend("Player");
     var player  = new Player();
     var location = new Parse.GeoPoint(0,0);
 
     //TODO: Check if playerID is already in use
-
-    player.set("playerID", playerID);
-    player.set("playerColor", null);
+    var id = makeid();
+    player.set("playerID", id);
     player.set("isReady", false);
     player.set("isPrey", false);
     player.set("location", location);
-
-    player.save({
-        success: function(player){
-            alert("createPlayer: Add PLAYER-relation to GAME");
-            var relation = game.relation("players");
-            relation.add(player);
-
-            game.save({
-                success: function(){
-                    alert("createPlayer: Saved GAME object, call function executed");
-                    callback();
-                },
-                error: function(){
-                    alert("createPlayer: Failed to save GAME object")
-                }
-            });
-        },
-        error: function(){
-            alert("createPlayer: Failed to add PLAYER-relation to GAME");
-        }
-    });
+    
+    return player;
 }
 
 /**
