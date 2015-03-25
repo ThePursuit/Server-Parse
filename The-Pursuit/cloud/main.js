@@ -219,7 +219,37 @@ Parse.Cloud.define("joinGame", function(request, response){
         }
     });
 });
- 
+
+/**
+ * Create a player
+ *
+ * @method createPlayer
+ * @return {Player : player} Returns a player.
+ */
+Parse.Cloud.define("createPlayer", function(request, response){
+
+    var Player = Parse.Object.extend("Player");
+    var player  = new Player();
+    var location = new Parse.GeoPoint(0,0);
+
+    //TODO: Check if playerID is already in use
+
+    player.set("playerID", make);
+    player.set("playerColor", null);
+    player.set("isReady", false);
+    player.set("isPrey", false);
+    player.set("location", location);
+
+    player.save({
+        success: function(player){
+            response.success(player);
+        },
+        error: function(){
+            alert("createPlayer: Failed to create player");
+        }
+    });
+});
+
 function createPlayer(game, callback) {
  
     var Player = Parse.Object.extend("Player");
