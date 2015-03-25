@@ -207,18 +207,37 @@ function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
 Parse.Cloud.define("joinGame", function(request, response){
  
     var gameQuery = new Parse.Query("Game");
+    var playerQuery = new Parse.Query("Player");
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
         success: function(game){
-            createPlayer(game, function(){
-                alert("joinGame: Added PLAYER to GAME successfully, return GAME object");
-                response.success(game);
+            playerQuery.get(request.params.objectID, {
+            	success: function(player){
+            		alert("joinGame: Found Player");
+		            var relation = game.relation("players");
+		            relation.add(player);
+		 
+		            game.save({
+		                success: function(){
+		                    alert("joinGame: Saved GAME object, call function executed");
+		                    response.success(game);
+		                },
+		                error: function(){
+		                    alert("joinGame: Failed to save GAME object")
+		                }
+		            });
+
+            	},
+            	error: function(){
+            		alert("joinGame: Player not found");
+            	}
             });
         },
         error: function(){
             response.error("joinGame: No game with that gameID found");
         }
     });
+    
 });
 
 /**
@@ -235,7 +254,7 @@ Parse.Cloud.define("createPlayer", function(request, response){
 
     //TODO: Check if playerID is already in use
 
-    player.set("playerID", make);
+    player.set("playerID", makeid());
     player.set("playerColor", null);
     player.set("isReady", false);
     player.set("isPrey", false);
