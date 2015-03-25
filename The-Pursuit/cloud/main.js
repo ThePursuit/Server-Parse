@@ -155,11 +155,12 @@ function makeid() {
                 request.params.catchRadius,
                 request.params.duration,
                 request.params.maxPlayers,
-                function(){
-                    alert("setRules: Added RULES to GAME successfully")
+                function() {
+                    alert("setRules: Added RULES to GAME successfully");
+                    response.success(game);
                 }
             );
-            response.success(game);
+            
         },
         error: function() {
             response.error("setRules: Game does not exist");
