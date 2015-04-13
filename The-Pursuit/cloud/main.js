@@ -120,6 +120,27 @@ function createState(game, callback) {
       }
     });
 }
+
+function setPlayerColor(game, player) {
+
+    var colors = ["00ff00","ffff00", "0000ff", "ff0080","40ffff","800080","ff8000", "ff0000","00ff00","ffff00", 
+                    "0000ff", "ff0080","40ffff","800080","ff8000", "ff0000","00ff00","ffff00", "0000ff", "ff0080","40ffff","800080","ff8000"];
+
+    game.relation("players").query().find({
+        success: function(players){
+            for(var i = 0; i < colors.length; i++ ){
+                var color = colors.index(i);
+                for(var j = 0; j < players.length; j++){
+                    if(players.get(j).get(playerColor) != color)
+                        player.set("playerColor", color);       
+                }
+            }
+        },
+        error: function(){
+            alert("setPlayerColor: Failed to retrieve players")
+        }
+    }); 
+}
    
 function makeid() {
     var text = "";
