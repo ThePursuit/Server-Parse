@@ -8,7 +8,7 @@ Parse.Cloud.define("hello", function(request, response) {
  * game.
  *
  * @method updateGame
- * @param {String : playerID} Player to update state with
+ * @param {String : playerObjID} Player's objectID to update state with
  * @param {String : gameID} Game to update state with
  * @param {String : longitude} Longitude to set player's location
  * @param {String : latitude} Latitude to set player's location
@@ -22,8 +22,7 @@ Parse.Cloud.define("updateGame", function(request, response) {
     gameQuery.first({
         success: function(game){
             var playerQuery = new Parse.Query("Player");
-            playerQuery.equalTo("playerID", request.params.playerID);
-            playerQuery.first({
+            playerQuery.get(request.params.playerObjID, {
                 success: function(player){
                     var location = new Parse.GeoPoint(request.params.latitude, request.params.longitude);
   
@@ -304,49 +303,6 @@ function createPlayer(){
  
     return player;
 }
- 
-/* 
-function createPlayer(game, callback) {
-   
-    var Player = Parse.Object.extend("Player");
-    var player  = new Player();
-    var location = new Parse.GeoPoint(0,0);
-   
-    //TODO: Check if playerID is already in use
-      
-    var id = makeid();
-    player.set("playerID", id);
-      
-    //player.set("playerID", playerID);
-    player.set("gameID", game.get("gameID"));
-    player.set("playerColor", null);
-    player.set("isReady", false);
-    player.set("isPrey", false);
-    player.set("location", location);
-   
-    player.save({
-        success: function(player){
-            alert("createPlayer: Add PLAYER-relation to GAME");
-            var relation = game.relation("players");
-            relation.add(player);
-   
-            game.save({
-                success: function(){
-                    alert("createPlayer: Saved GAME object, call function executed");
-                    callback();
-                },
-                error: function(){
-                    alert("createPlayer: Failed to save GAME object")
-                }
-            });
-              
-        },
-        error: function(){
-            alert("createPlayer: Failed to add PLAYER-relation to GAME");
-        }
-    });
-}
-*/
 
 /**
  * Start a certain game.
@@ -417,7 +373,7 @@ Parse.Cloud.define("tryCatch", function(request, response) {
 							var preyLoc = new Parse.GeoPoint(player.get("location"));
 							break;
 						}
-					});
+					}
                 }
             });
 
