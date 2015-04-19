@@ -347,15 +347,110 @@ function createPlayer(game, callback) {
     });
 }
 */
-    
+
 /**
- * Try to catch prey, if player is to far a way, a time penalty
- * is issued. Otherwise prey is caught and gameState is updated.
+ * Start a certain game.
  *
- * @method tryCatch
- * @param {Player: player} Player to update state with
- * @return {Game} Returns updated GameState
+ * @method startGame
+ * @param {Game : game} A game to be started
+ * @return {Game : game} Returns the started game.
  */
+Parse.Cloud.define("startGame", function(request, response){
+
+    var gameQuery = new Parse.Query("Game");
+    gameQuery.equalTo("gameID", request.params.gameID);
+    gameQuery.first({
+        success: function(game){
+			var startTime = new Date();
+			var stateRelation = game.relation("state");
+
+			stateRelation.query().first({
+				success: function(state){
+					state.set("isPlaying", true);
+					state.set("startTime", startTime);
+					state.save();
+			
+					var rulesRelation = game.relation("rules");
+
+					rulesRelation.query().first({
+						success: function(rules){
+							state.set("endTime", new Date(startTime.getTime() + rules.get("durationTime")*1000*60));
+							state.save();
+							response.success(game);
+						},
+						error: function(){
+							alert("startGame: Rules not found");
+						}
+					});
+				},
+				error: function(){
+					alert("startGame: State not found.");
+				}
+			});
+        },
+        error: function(){
+			alert("startGame: No such game.");
+        }
+    });
+});
+
+/**
+* Try to catch prey, if player is to far a way, a time penalty
+* is issued. Otherwise prey is caught and gameState is updated.
+*
+* @method tryCatch
+* @param {Game : game} The current game
+* @param {Player : player} Player to update state with
+* @return {Game : game} Returns updated GameState
+*/
 Parse.Cloud.define("tryCatch", function(request, response) {
-    response.success("Trying to catch prey");
+
+    var gameQuery = new Parse.Query("Game");
+    gameQuery.equalTo("gameID", request.params.gameID);
+    gameQuery.first({
+        success: function(game){
+            var playerRelation = game.relation("players");
+            playerRelation.query().find({
+                success: function(players){
+					for(var i = 0; i < players.length; i++){
+						if(players[i].get("isPrey") == true){
+							var preyLoc = new Parse.GeoPoint(player.get("location"));
+							break;
+						}
+					});
+                }
+            });
+
+            var playLoc = new Parse.GeoPoint(request.params.location);
+            var rulesRelation = game.relation("rules");
+            
+            rulesRelation.query().first({
+                success: function(rules){
+                    var catchRadius = rules.get("catchRadius");
+                }
+            });
+
+            if(preyLoc.kilometersTo(playLoc) * 1000 <= catchRadius){
+
+                var stateRelation = game.relation("state");
+                stateRelation.query().first({
+                    success: function(state){
+                        state.set("isPlaying", false);
+                        state.save({
+							success: function(){
+								alert("tryCatch: Prey successfully captured");
+								response.success(game);
+							}
+                        });
+                    }
+                });
+            }
+            else{
+                response.error("Prey out of reach");
+            }
+        },
+        error: function(){
+            alert("tryCatch: No such GAME");
+        }
+    });
 });
