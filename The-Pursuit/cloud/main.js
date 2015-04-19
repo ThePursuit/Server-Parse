@@ -312,40 +312,51 @@ function createPlayer(){
  * @return {Game : game} Returns the started game.
  */
 Parse.Cloud.define("startGame", function(request, response){
-
+ 
     var gameQuery = new Parse.Query("Game");
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
         success: function(game){
-			var startTime = new Date();
-			var stateRelation = game.relation("state");
+            var startTime = new Date();
+            var stateRelation = game.relation("state");
+	    var rulesRelation = game.relation("rules");
+	    var playerRelation = game.relation("players");
 
-			stateRelation.query().first({
-				success: function(state){
-					state.set("isPlaying", true);
-					state.set("startTime", startTime);
-					state.save();
+	    playerRelation.query().find({
+		    success: function(players){
+			    var player = players[Math.floor(Math.random() * players.length)];
+			    player.set("isPrey", true);
+			    player.save();
+		    },
+		    error: function(){
+			    alert("startGame: Player query error");
+		    }
+  	    });
 			
-					var rulesRelation = game.relation("rules");
-
-					rulesRelation.query().first({
-						success: function(rules){
-							state.set("endTime", new Date(startTime.getTime() + rules.get("durationTime")*1000*60));
-							state.save();
-							response.success(game);
-						},
-						error: function(){
-							alert("startGame: Rules not found");
-						}
-					});
-				},
-				error: function(){
-					alert("startGame: State not found.");
-				}
-			});
+            stateRelation.query().first({
+                success: function(state){
+                    state.set("isPlaying", true);
+                    state.set("startTime", startTime);
+                    state.save();
+             
+                    rulesRelation.query().first({
+                        success: function(rules){
+                            state.set("endTime", new Date(startTime.getTime() + rules.get("durationTime")*1000*60));
+                            state.save();
+                            response.success(game);
+                        },
+                        error: function(){
+                            alert("startGame: Rules not found");
+                        }
+                    });
+                },
+                error: function(){
+                    alert("startGame: State not found.");
+                }
+            });
         },
         error: function(){
-			alert("startGame: No such game.");
+            alert("startGame: No such game.");
         }
     });
 });
