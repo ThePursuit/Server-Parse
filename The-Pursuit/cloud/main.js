@@ -376,45 +376,54 @@ Parse.Cloud.define("tryCatch", function(request, response) {
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
         success: function(game){
-        	var playLoc = new Parse.GeoPoint(request.params.location);
-            var playerRelation = game.relation("players");
-            var rulesRelation = game.relation("rules");
-            var stateRelation = game.relation("state");
-            
-            playerRelation.query().find({
-                success: function(players){
-					for(var i = 0; i < players.length; i++){
-						if(players[i].get("isPrey") == true){
-							var preyLoc = new Parse.GeoPoint(players[i].get("location"));
-							break;
-						}
-					}
-                }
-            });
 
-            rulesRelation.query().first({
-                success: function(rules){
-                    var catchRadius = rules.get("catchRadius");
-                }
-            });
+            var playerQuery = new Parse.Query("Player");
+            playerQuery.get(request.params.playerObjID, {
+                success: function(player){
+                    var playLoc = player.get("location");
+                    var playerRelation = game.relation("players");
+                    var rulesRelation = game.relation("rules");
+                    var stateRelation = game.relation("state");
 
-            if(preyLoc.kilometersTo(playLoc) * 1000 <= catchRadius){
+                    playerRelation.query().find({
+                        success: function(players){
+                            for(var i = 0; i < players.length; i++){
+                                if(players[i].get("isPrey") == true){
+                                    var preyLoc = new Parse.GeoPoint(players[i].get("location"));
+                                    break;
+                                }
+                            }
+                        }
+                    });
 
-                stateRelation.query().first({
-                    success: function(state){
-                        state.set("isPlaying", false);
-                        state.save({
-							success: function(){
-								alert("tryCatch: Prey successfully captured");
-								response.success(game);
-							}
+                    rulesRelation.query().first({
+                        success: function(rules){
+                            var catchRadius = rules.get("catchRadius");
+                        }
+                    });
+
+                    if(preyLoc.kilometersTo(playLoc) * 1000 <= catchRadius){
+
+                        stateRelation.query().first({
+                            success: function(state){
+                                state.set("isPlaying", false);
+                                state.save({
+                                    success: function(){
+                                        alert("tryCatch: Prey successfully captured");
+                                        response.success(game);
+                                    }
+                                });
+                            }
                         });
+                    } else {
+                        response.error("Prey out of reach");
                     }
-                });
-            }
-            else{
-                response.error("Prey out of reach");
-            }
+
+                },
+                error: function(){
+                    alert("tryCatch: Failed to find player");   
+                }
+            });
         },
         error: function(){
             alert("tryCatch: No such GAME");
