@@ -380,16 +380,18 @@ Parse.Cloud.define("tryCatch", function(request, response) {
             var playerQuery = new Parse.Query("Player");
             playerQuery.get(request.params.playerObjID, {
                 success: function(player){
+                    var preyLoc;
                     var playLoc = player.get("location");
+                    var catchRadius;
                     var playerRelation = game.relation("players");
                     var rulesRelation = game.relation("rules");
                     var stateRelation = game.relation("state");
-
+                    
                     playerRelation.query().find({
                         success: function(players){
                             for(var i = 0; i < players.length; i++){
                                 if(players[i].get("isPrey") == true){
-                                    var preyLoc = new Parse.GeoPoint(players[i].get("location"));
+                                    preyLoc = new Parse.GeoPoint(players[i].get("location"));
                                     break;
                                 }
                             }
@@ -398,7 +400,7 @@ Parse.Cloud.define("tryCatch", function(request, response) {
 
                     rulesRelation.query().first({
                         success: function(rules){
-                            var catchRadius = rules.get("catchRadius");
+                            catchRadius = rules.get("catchRadius");
                         }
                     });
 
