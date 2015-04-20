@@ -63,7 +63,7 @@ Parse.Cloud.define("createGame", function(request, response) {
     var player = createPlayer();
     var gameID = makeid();
     game.set("gameID", gameID);
- 
+    player.set("isCreator", true);
     player.save({
         success: function(player){
             var relation = game.relation("players");
