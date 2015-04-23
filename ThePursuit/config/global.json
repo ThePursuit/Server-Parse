@@ -1,8 +1,8 @@
 {
     "applications": {
         "The Pursuit": {
-            "applicationId": "21DCbnaTgYiizadtK1BRnc4knpMYwNiNkrRnUvdR", 
-            "masterKey": "5R4UpiNldcHnpJ74fvV9dEu7uKJIk2zWQXQEJRQt"
+            "applicationId": "rShXzUyvjlzHIXxJMlN8LIoQqVilA9CcCY3Ml5kU", 
+            "masterKey": "Dq8v4D285klKPY1mqqmp4CHuQbsErSvfEq8AEynP"
         }, 
         "_default": {
             "link": "The Pursuit"
