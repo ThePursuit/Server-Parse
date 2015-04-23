@@ -186,9 +186,9 @@ function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
     var Rules = Parse.Object.extend("Rules");
     var rules  = new Rules();
   
-    rules.set("radius", radius);
+    rules.set("areaRadius", radius);
     rules.set("catchRadius", catchRadius);
-    rules.set("duration", duration);
+    rules.set("durationTime", duration);
     rules.set("maxPlayers", maxPlayers);
     rules.save({
         success: function(rules){
