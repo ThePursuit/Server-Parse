@@ -71,15 +71,20 @@ Parse.Cloud.define("createGame", function(request, response) {
   
             game.save({
               success: function() {
-  
-                createState(game, function() {
-                  alert("createGame: Added STATE to GAME successfully");
-                  var jsonObject = {
-                    "player": player,
-                    "game": game
-                  };
-                  response.success(jsonObject);
-                });    
+
+    			setPlayerColor(game, player, function(){
+
+		                createState(game, function() {
+		                  alert("createGame: Added STATE to GAME successfully");
+		                  var jsonObject = {
+		                    "player": player,
+		                    "game": game
+		                  };
+		                  response.success(jsonObject);
+		                });
+
+    			});
+
   
               }, error: function(error){
                 alert("createGame: Game response error. " + error)
@@ -90,6 +95,82 @@ Parse.Cloud.define("createGame", function(request, response) {
     });
   
 }); 
+
+function setPlayerColor(game, player, callback) {
+
+    var colors = ["#FF0000","#0000FF", "#00FF00", "#FFFF00","#FF0066","#FF9900","#000000", "#FFFFFF"];
+    var colorUsed = false;
+
+    game.relation("players").query().find({
+        success: function(players){
+
+        	if(players.length <= colors.length){
+	            for(var i = 0; i < colors.length; i++ ){
+	                var color = colors[i];
+
+	                for(var j = 0; j < players.length; j++){
+	                    if(players[j].get("playerColor") == color){
+	                        colorUsed = true;
+	                        break;
+	                    }
+	                }
+
+	                if(!colorUsed){
+	                    	player.set("playerColor", color);
+	                        player.save({
+	                        	success: function() {
+	                        		game.save({
+	                        			success: function() {
+	                        				callback()
+	                        			}
+	                        		})
+	                        	}
+	                        });
+	                        return;
+	                }
+	                colorUsed = false;
+	            }        		
+        	} else{//Use random color generator
+				colorUsed = true;
+				var randomColor;
+	            while(colorUsed){
+	            	randomColor = getRandomColor();
+	            	colorUsed = false;
+	            	for(var i = 0; i < players.length; i++){
+	                    if(players[i].get("playerColor") == randomColor){
+	                        colorUsed = true;
+	                        break;
+	                    }
+	                }
+	            }
+	            player.set("playerColor", randomColor);
+                player.save({
+                	success: function() {
+                		game.save({
+                			success: function() {
+                				callback()
+                			}
+                		})
+                	}
+                });
+        	}
+
+        },
+        error: function(){
+            alert("setPlayerColor: Failed to retrieve players")
+        }
+    }); 
+
+}
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
     
 function createState(game, callback) {
     var State = Parse.Object.extend("State");
@@ -240,7 +321,9 @@ Parse.Cloud.define("joinGame", function(request, response){
                             game.save({
                                 success: function(){
                                     alert("joinGame: Saved GAME object, call function executed");
-                                    response.success(game);
+                                    setPlayerColor(game, player, function(){
+                                    	response.success(game);
+                                    })
                                 },
                                 error: function(){
                                     alert("joinGame: Failed to save GAME object");
