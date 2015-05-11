@@ -485,6 +485,16 @@ Parse.Cloud.define("tryCatch", function(request, response) {
           
                                         stateRelation.query().first({
                                             success: function(state){
+
+                                            	for(var i = 0; i < players.length; i++){
+					                                players[i].set("isReady", false);
+					                                players[i].save({
+					                                	success: function(){
+					                                		
+					                                	}
+					                                });
+					                            }
+
                                                 state.set("isPlaying", false);
                                                 state.save({
                                                     success: function(){
