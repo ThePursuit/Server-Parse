@@ -2,7 +2,7 @@
 Parse.Cloud.define("hello", function(request, response) {
   response.success("Hello, " + request.params.name + "!");
 });
-    
+     
 /**
  * Saves the callers location and returns the state of the
  * game.
@@ -15,9 +15,9 @@ Parse.Cloud.define("hello", function(request, response) {
  * @return {Game : game} Returns updated GameState
  */
 Parse.Cloud.define("updateGame", function(request, response) {
-   
+    
     var gameQuery = new Parse.Query("Game");
-   
+    
     gameQuery.equalTo("gameID",request.params.gameID);
     gameQuery.first({
         success: function(game){
@@ -25,7 +25,7 @@ Parse.Cloud.define("updateGame", function(request, response) {
             playerQuery.get(request.params.playerObjID, {
                 success: function(player){
                     var location = new Parse.GeoPoint(request.params.latitude, request.params.longitude);
-   
+    
                     player.set("location", location);
                     player.save({
                         success: function(){
@@ -47,7 +47,7 @@ Parse.Cloud.define("updateGame", function(request, response) {
         }
     });
 });
-    
+     
 /**
  * Creates a new game with caller as a player.
  *
@@ -57,7 +57,7 @@ Parse.Cloud.define("updateGame", function(request, response) {
  * The keys are "game" and "player".
  */
 Parse.Cloud.define("createGame", function(request, response) {
-    
+     
     var Game = Parse.Object.extend("Game");
     var game = new Game();
     var player = createPlayer();
@@ -68,101 +68,101 @@ Parse.Cloud.define("createGame", function(request, response) {
         success: function(player){
             var relation = game.relation("players");
             relation.add(player);
-  
+   
             game.save({
               success: function() {
-
-    			setPlayerColor(game, player, function(){
-
-		                createState(game, function() {
-		                  alert("createGame: Added STATE to GAME successfully");
-		                  var jsonObject = {
-		                    "player": player,
-		                    "game": game
-		                  };
-		                  response.success(jsonObject);
-		                });
-
-    			});
-
-  
+ 
+                setPlayerColor(game, player, function(){
+ 
+                        createState(game, function() {
+                          alert("createGame: Added STATE to GAME successfully");
+                          var jsonObject = {
+                            "player": player,
+                            "game": game
+                          };
+                          response.success(jsonObject);
+                        });
+ 
+                });
+ 
+   
               }, error: function(error){
                 alert("createGame: Game response error. " + error)
               }
             });
-  
+   
         }
     });
-  
+   
 }); 
-
+ 
 function setPlayerColor(game, player, callback) {
-
+ 
     var colors = ["#FF0000","#0000FF", "#00FF00", "#FFFF00","#FF0066","#FF9900","#000000", "#FFFFFF"];
     var colorUsed = false;
-
+ 
     game.relation("players").query().find({
         success: function(players){
-
-        	if(players.length <= colors.length){
-	            for(var i = 0; i < colors.length; i++ ){
-	                var color = colors[i];
-
-	                for(var j = 0; j < players.length; j++){
-	                    if(players[j].get("playerColor") == color){
-	                        colorUsed = true;
-	                        break;
-	                    }
-	                }
-
-	                if(!colorUsed){
-	                    	player.set("playerColor", color);
-	                        player.save({
-	                        	success: function() {
-	                        		game.save({
-	                        			success: function() {
-	                        				callback()
-	                        			}
-	                        		})
-	                        	}
-	                        });
-	                        return;
-	                }
-	                colorUsed = false;
-	            }        		
-        	} else{//Use random color generator
-				colorUsed = true;
-				var randomColor;
-	            while(colorUsed){
-	            	randomColor = getRandomColor();
-	            	colorUsed = false;
-	            	for(var i = 0; i < players.length; i++){
-	                    if(players[i].get("playerColor") == randomColor){
-	                        colorUsed = true;
-	                        break;
-	                    }
-	                }
-	            }
-	            player.set("playerColor", randomColor);
+ 
+            if(players.length <= colors.length){
+                for(var i = 0; i < colors.length; i++ ){
+                    var color = colors[i];
+ 
+                    for(var j = 0; j < players.length; j++){
+                        if(players[j].get("playerColor") == color){
+                            colorUsed = true;
+                            break;
+                        }
+                    }
+ 
+                    if(!colorUsed){
+                            player.set("playerColor", color);
+                            player.save({
+                                success: function() {
+                                    game.save({
+                                        success: function() {
+                                            callback()
+                                        }
+                                    })
+                                }
+                            });
+                            return;
+                    }
+                    colorUsed = false;
+                }               
+            } else{//Use random color generator
+                colorUsed = true;
+                var randomColor;
+                while(colorUsed){
+                    randomColor = getRandomColor();
+                    colorUsed = false;
+                    for(var i = 0; i < players.length; i++){
+                        if(players[i].get("playerColor") == randomColor){
+                            colorUsed = true;
+                            break;
+                        }
+                    }
+                }
+                player.set("playerColor", randomColor);
                 player.save({
-                	success: function() {
-                		game.save({
-                			success: function() {
-                				callback()
-                			}
-                		})
-                	}
+                    success: function() {
+                        game.save({
+                            success: function() {
+                                callback()
+                            }
+                        })
+                    }
                 });
-        	}
-
+            }
+ 
         },
         error: function(){
             alert("setPlayerColor: Failed to retrieve players")
         }
     }); 
-
+ 
 }
-
+ 
 function getRandomColor() {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
@@ -171,11 +171,11 @@ function getRandomColor() {
     }
     return color;
 }
-    
+     
 function createState(game, callback) {
     var State = Parse.Object.extend("State");
     var state  = new State();
-    
+     
     state.set("startTime", null);
     state.set("isPlaying", false);
     state.save({
@@ -183,7 +183,7 @@ function createState(game, callback) {
         alert("createState: Add STATE relation to GAME.")
         var relation = game.relation("state");
         relation.add(state);
-   
+    
         game.save({
           success: function(){
             alert("createState: Saved GAME successfully, call function executed")
@@ -193,25 +193,25 @@ function createState(game, callback) {
             alert("createState: Failed to save GAME.")
           }
         });
-   
+    
       },
       error: function(error){
           alert("createState: State save error. " + error)
       }
     });
 }
-    
+     
 function makeid() {
     var text = "";
     var possible = "abcdefghijklmnopqrstuvwxyz0123456789";
     var isUniqueID = false;
-    
+     
     // do {
         for( var i = 0; i < 4; i++ )
             text += possible.charAt(Math.floor(Math.random() * possible.length));
-    
+     
     //     var gameQuery = new Parse.Query("Game");
-    
+     
     //     gameQuery.equalTo("gameID", text);
     //     //not sure how Query.count works but hopefully this works as intended
     //     gameQuery.count({
@@ -222,10 +222,10 @@ function makeid() {
     //     });
     // }
     // while(!isUniqueID);
-    
+     
     return text;
 }
-    
+     
 /**
  * Set the rules for a given game.
  *
@@ -238,9 +238,9 @@ function makeid() {
  * @return {Game : game} Returns the game with the new rules.
  */
  Parse.Cloud.define("setRules", function(request, response) {
-   
+    
     var gameQuery = new Parse.Query("Game");
-   
+    
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
         success: function(game) {
@@ -255,18 +255,18 @@ function makeid() {
                     response.success(game);
                 }
             );
-              
+               
         },
         error: function() {
             response.error("setRules: Game does not exist");
         }
     });
 });
-   
+    
 function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
     var Rules = Parse.Object.extend("Rules");
     var rules  = new Rules();
-   
+    
     rules.set("areaRadius", radius);
     rules.set("catchRadius", catchRadius);
     rules.set("durationTime", duration);
@@ -291,7 +291,7 @@ function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
         }
     });
 }
-     
+      
 /**
  * Join a created game with given gameID and objectID of the Player
  *
@@ -301,53 +301,53 @@ function setRules(game, radius, catchRadius, duration, maxPlayers, callback) {
  * @return {Game : game} Returns an updated game with relations to player within the game.
  */
 Parse.Cloud.define("joinGame", function(request, response){
-    
+     
     var gameQuery = new Parse.Query("Game");
     var playerQuery = new Parse.Query("Player");
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
         success: function(game){
-  
+   
             playerQuery.get(request.params.playerObjID, {
                 success: function(player){
                     alert("joinGame: Found Player with Object ID: " + player.id);
-  
+   
                     player.save({
                         success: function(player){
                             var relation = game.relation("players");
                             relation.add(player);
                             alert("joinGame: Saved Player object successfully");
-  
+   
                             game.save({
                                 success: function(){
                                     alert("joinGame: Saved GAME object, call function executed");
                                     setPlayerColor(game, player, function(){
-                                    	response.success(game);
+                                        response.success(game);
                                     })
                                 },
                                 error: function(){
                                     alert("joinGame: Failed to save GAME object");
                                 }
                             });
-  
+   
                         }
                     });
-  
+   
                 },
-  
+   
                 error: function(){
                     alert("joinGame: Failed to retrieve player");   
                 }
             });
-  
+   
         },
         error: function(){
             response.error("joinGame: No game with that gameID found");
         }
     });
-       
+        
 });
-   
+    
 /**
  * Create a player
  *
@@ -355,9 +355,9 @@ Parse.Cloud.define("joinGame", function(request, response){
  * @return {Player : player} Returns a player.
  */
 Parse.Cloud.define("createPlayer", function(request, response){
-  
-    var player  = createPlayer();
    
+    var player  = createPlayer();
+    
     player.save({
         success: function(player){
             response.success(player);
@@ -367,9 +367,9 @@ Parse.Cloud.define("createPlayer", function(request, response){
             alert("createPlayer: Failed to create player");
         }
     });
-  
+   
 });
-  
+   
 /**
  *@return {Player : player} Returns a newly created Player object.
  */
@@ -377,16 +377,16 @@ function createPlayer(){
     var Player = Parse.Object.extend("Player");
     var player  = new Player();
     var location = new Parse.GeoPoint(0,0);
-    
+     
     player.set("playerID", makeid());
     player.set("playerColor", null);
     player.set("isReady", false);
     player.set("isPrey", false);
     player.set("location", location);
-  
+   
     return player;
 }
- 
+  
 /**
  * Start a certain game.
  *
@@ -395,7 +395,7 @@ function createPlayer(){
  * @return {Game : game} Returns the started game.
  */
 Parse.Cloud.define("startGame", function(request, response){
-  
+   
     var gameQuery = new Parse.Query("Game");
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
@@ -404,7 +404,7 @@ Parse.Cloud.define("startGame", function(request, response){
             var stateRelation = game.relation("state");
         var rulesRelation = game.relation("rules");
         var playerRelation = game.relation("players");
- 
+  
         playerRelation.query().find({
             success: function(players){
                 var player = players[Math.floor(Math.random() * players.length)];
@@ -415,13 +415,14 @@ Parse.Cloud.define("startGame", function(request, response){
                 alert("startGame: Player query error");
             }
         });
-             
+              
             stateRelation.query().first({
                 success: function(state){
                     state.set("isPlaying", true);
+                    state.set("preyCaught", false);
                     state.set("startTime", startTime);
                     state.save();
-              
+               
                     rulesRelation.query().first({
                         success: function(rules){
                             state.set("endTime", new Date(startTime.getTime() + rules.get("durationTime")*1000*60));
@@ -443,7 +444,7 @@ Parse.Cloud.define("startGame", function(request, response){
         }
     });
 });
- 
+  
 /**
 * Try to catch prey, if player is to far a way, a time penalty
 * is issued. Otherwise prey is caught and gameState is updated.
@@ -454,13 +455,13 @@ Parse.Cloud.define("startGame", function(request, response){
 * @return {Game : game} Returns updated GameState
 */
 Parse.Cloud.define("tryCatch", function(request, response) {
-  
+   
     var gameQuery = new Parse.Query("Game");
     gameQuery.equalTo("gameID", request.params.gameID);
     gameQuery.first({
         success: function(game){
             var playerQuery = new Parse.Query("Player");
- 
+  
             playerQuery.get(request.params.playerObjID, {
                 success: function(player){
                     var playerRelation = game.relation("players");
@@ -480,22 +481,24 @@ Parse.Cloud.define("tryCatch", function(request, response) {
                             rulesRelation.query().first({
                                 success: function(rules){
                                     catchRadius = rules.get("catchRadius");
-                                     
+                                      
                                     if(preyLoc.kilometersTo(playLoc) * 1000 <= catchRadius){
-          
+           
                                         stateRelation.query().first({
                                             success: function(state){
-
-                                            	for(var i = 0; i < players.length; i++){
-					                                players[i].set("isReady", false);
-					                                players[i].save({
-					                                	success: function(){
-					                                		
-					                                	}
-					                                });
-					                            }
-
+ 
+                                                for(var i = 0; i < players.length; i++){
+                                                    players[i].set("isReady", false);
+                                                    players[i].set("isPrey", false);
+                                                    players[i].save({
+                                                        success: function(){
+                                                             
+                                                        }
+                                                    });
+                                                }
+ 
                                                 state.set("isPlaying", false);
+                                                state.set("preyCaught", true);
                                                 state.save({
                                                     success: function(){
                                                         alert("tryCatch: Prey successfully captured");
