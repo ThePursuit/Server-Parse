@@ -501,8 +501,15 @@ Parse.Cloud.define("tryCatch", function(request, response) {
                                                 state.set("preyCaught", true);
                                                 state.save({
                                                     success: function(){
-                                                        alert("tryCatch: Prey successfully captured");
-                                                        response.success(game);
+
+                                                    	game.set("audioFiles", null);
+						                            	game.save({
+						                            		success: function(){
+						                            			alert("endGame: Successfully ended game after time out");
+						                                		response.success(game);
+						                            		}
+						                            	})
+
                                                     }
                                                 });
                                             }
@@ -526,6 +533,60 @@ Parse.Cloud.define("tryCatch", function(request, response) {
         },
         error: function(){
             alert("tryCatch: No such GAME");
+        }
+    });
+});
+
+Parse.Cloud.define("endGame", function(request, response) {
+   
+    var gameQuery = new Parse.Query("Game");
+    gameQuery.equalTo("gameID", request.params.gameID);
+    gameQuery.first({
+        success: function(game){
+
+            var stateRelation = game.relation("state");
+            var playerRelation = game.relation("players");
+
+            playerRelation.query().find({
+	            success: function(players){
+
+	            	stateRelation.query().first({
+	                    success: function(state){
+	                        for(var i = 0; i < players.length; i++){
+	                            players[i].set("isReady", false);
+	                            players[i].set("isPrey", false);
+	                            players[i].save({
+	                                success: function(){
+	                                     
+	                                }
+	                            });
+	                        }
+	                        state.set("isPlaying", false);
+	                        state.save({
+	                            success: function(){
+
+	                            	game.set("audioFiles", null);
+	                            	game.save({
+	                            		success: function(){
+	                            			alert("endGame: Successfully ended game after time out");
+	                                		response.success(game);
+	                            		}
+	                            	})
+	                                
+	                            }
+	                        });
+	                    }
+	                });
+	                
+	            },
+	            error: function(){
+	                alert("endGame: Players not found");
+	            }
+         	});
+
+        },
+        error: function(){
+            alert("endGame: No such GAME");
         }
     });
 });
