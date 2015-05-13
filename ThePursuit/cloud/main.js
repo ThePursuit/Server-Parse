@@ -467,6 +467,7 @@ Parse.Cloud.define("tryCatch", function(request, response) {
                     var playerRelation = game.relation("players");
                     var rulesRelation = game.relation("rules");
                     var stateRelation = game.relation("state");
+                    var audioRelation = game.relation("audioFiles");
                     var playLoc = new Parse.GeoPoint(player.get("location"));
                     var preyLoc;
                     var catchRadius;
@@ -502,7 +503,19 @@ Parse.Cloud.define("tryCatch", function(request, response) {
                                                 state.save({
                                                     success: function(){
 
-                                                    	game.set("audioFiles", null);
+                                                    	audioRelation.query().find({
+						                            		success: function(audios){
+						                            			for(var i = 0; i < audios.length; i++){
+										                            audios[i].destroy();
+										                            audios[i].save({
+										                                success: function(){
+										                                     
+										                                }
+										                            });
+										                        }
+						                            		}
+						                            	})
+
 						                            	game.save({
 						                            		success: function(){
 						                            			alert("endGame: Successfully ended game after time out");
@@ -546,6 +559,7 @@ Parse.Cloud.define("endGame", function(request, response) {
 
             var stateRelation = game.relation("state");
             var playerRelation = game.relation("players");
+            var audioRelation = game.relation("audioFiles");
 
             playerRelation.query().find({
 	            success: function(players){
@@ -565,7 +579,19 @@ Parse.Cloud.define("endGame", function(request, response) {
 	                        state.save({
 	                            success: function(){
 
-	                            	game.set("audioFiles", null);
+	                            	audioRelation.query().find({
+	                            		success: function(audios){
+	                            			for(var i = 0; i < audios.length; i++){
+					                            audios[i].destroy();
+					                            audios[i].save({
+					                                success: function(){
+					                                     
+					                                }
+					                            });
+					                        }
+	                            		}
+	                            	})
+
 	                            	game.save({
 	                            		success: function(){
 	                            			alert("endGame: Successfully ended game after time out");
